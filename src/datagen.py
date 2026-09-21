@@ -30,3 +30,19 @@ def save_decks_to_file(shuffled_decks, filename):
 
 shuffle_decks = shuffle_deck(10)
 save_decks_to_file(shuffle_decks, "data/shuffled_decks10.txt")
+
+#FUNCTIION for bitpacking
+#will replace save_decks_to_file
+def pack_bit_list(shuffled_decks):
+    packed_bytes = bytearray()
+    
+    # Process the list in chunks of 8 bits
+    for i in range(0, len(shuffled_decks), 8):
+        chunk = shuffled_decks[i:i+8]
+        byte_val = 0
+        
+        # Pack up to 8 bits into a single integer
+        for bit_index, bit in enumerate(chunk):
+            byte_val |= (bit << bit_index)
+            
+        packed_bytes.append(byte_val)
