@@ -41,10 +41,9 @@ def pack_bit_list(shuffled_decks):
 
         # save the shuffled decks to a file in the data subfolder
 def save_decks_to_file(packed_bytes, filename):
-    with open(filename, "w") as f:
-        for deck in packed_bytes:
-            f.write(deck + "\n")
+    with open(filename, "wb") as f:
+        f.write(packed_bytes)
 
 shuffle_decks = shuffle_deck(10)
 decks_bit_list = pack_bit_list(shuffle_decks)
-save_decks_to_file(decks_bit_list, "data/shuffled_decks10.txt")
+save_decks_to_file(decks_bit_list, "data/shuffled_decks10.bin")
