@@ -47,3 +47,4 @@ def save_decks_to_file(packed_bytes, filename):
 shuffle_decks = shuffle_deck(10)
 decks_bit_list = pack_bit_list(shuffle_decks)
 save_decks_to_file(decks_bit_list, "data/shuffled_decks10.bin")
+print("Shuffled decks saved to file: data/shuffled_decks10.bin")
