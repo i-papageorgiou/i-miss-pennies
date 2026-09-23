@@ -11,6 +11,7 @@ def generate_deck():
 
     return deck
 
+#shuffle the integer lists
 def shuffle_deck(rounds):
     shuffled_decks = []
     for iter in range(0, rounds):
