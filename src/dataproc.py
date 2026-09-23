@@ -15,6 +15,8 @@ def unpack_bit_list(packed_bytes, original_length):
                 
     return bit_list
 
+test_run = unpack_bit_list(open("data/shuffled_decks10.bin", "rb").read(), 520)
+
 decks = pd.read_csv("data/shuffled_decks10.txt", header=None, names=["deck"])
 print(decks.head())
 card_comb = ["000", "111", ]
