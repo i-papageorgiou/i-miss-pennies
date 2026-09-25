@@ -2,6 +2,11 @@
 # generate cards
 
 import random
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_DATA = PROJECT_ROOT / "data/shuffled_decks.bin"
+LEGACY_DATA = PROJECT_ROOT / "data/shuffled_decks10.bin"
 
 
 def generate_deck():
@@ -22,7 +27,6 @@ def shuffle_deck(rounds):
     return shuffled_decks
 
 #FUNCTIION for bitpacking
-#will replace save_decks_to_file
 def pack_bit_list(shuffled_decks):
     packed_bytes = bytearray()
     
@@ -39,12 +43,66 @@ def pack_bit_list(shuffled_decks):
 
     return packed_bytes
 
-        # save the shuffled decks to a file in the data subfolder
+# save the shuffled decks to a file in the data subfolder
 def save_decks_to_file(packed_bytes, filename):
     with open(filename, "wb") as f:
         f.write(packed_bytes)
 
-shuffle_decks = shuffle_deck(10)
-decks_bit_list = pack_bit_list(shuffle_decks)
-save_decks_to_file(decks_bit_list, "data/shuffled_decks10.bin")
-print("Shuffled decks saved to file: data/shuffled_decks10.bin")
+def add_decks(number, filename=DEFAULT_DATA, seed_file=LEGACY_DATA):
+    """Preserve old cards and append new decks, repacking any padding bits."""
+    if not isinstance(number, int) or number < 0:
+        raise ValueError("The number of additional decks must be a nonnegative integer.")
+    filename = Path(filename)
+    source = filename if filename.exists() else seed_file
+    packed = Path(source).read_bytes() if source is not None and Path(source).exists() else b""
+    previous_count = len(packed) * 8 // 52
+    if len(packed) != (previous_count * 52 + 7) // 8:
+        raise ValueError("Existing file does not contain complete packed decks.")
+    bits = [(packed[i // 8] >> (i % 8)) & 1 for i in range(previous_count * 52)]
+    if previous_count + number == 0:
+        raise ValueError("Add at least one deck to start a dataset.")
+    bits.extend(shuffle_deck(number))
+    filename.parent.mkdir(parents=True, exist_ok=True)
+    # Replace only after the entire combined dataset has been written.
+    temporary = filename.with_suffix(filename.suffix + ".tmp")
+    save_decks_to_file(pack_bit_list(bits), temporary)
+    temporary.replace(filename)
+    return previous_count + number
+
+
+def main():
+    import argparse
+    # Support both `python src/datagen.py` and importing from main.py.
+    if __package__ in (None, ""):
+        import sys
+        sys.path.insert(0, str(PROJECT_ROOT))
+    from src.dataproc import analyze_file
+    from src.dataviz import plot_heatmap
+
+    parser = argparse.ArgumentParser(description="Add shuffled decks and regenerate the heatmap.")
+    parser.add_argument("--input", type=Path, default=DEFAULT_DATA)
+    parser.add_argument("--add-decks", type=int, help="Skip the prompt; 0 redraws existing data.")
+    parser.add_argument("--output", type=Path, default=PROJECT_ROOT / "figures/matchup_heatmap.png")
+    args = parser.parse_args()
+    number = args.add_decks
+    while number is None:
+        try:
+            number = int(input("How many more decks would you like to analyze? (0 to redraw): "))
+            if number < 0:
+                raise ValueError
+        except ValueError:
+            print("Please enter a whole number of zero or more.")
+            number = None
+    try:
+        seed = LEGACY_DATA if args.input.resolve() == DEFAULT_DATA.resolve() else None
+        total = add_decks(number, args.input, seed)
+        results, _ = analyze_file(args.input, total)
+        plot_heatmap(results, total, args.output)
+    except (ValueError, OSError) as error:
+        parser.exit(1, f"Error: {error}\n")
+    print(f"Added {number:,} decks; {total:,} decks analyzed in total.")
+    print(f"Decks saved to {args.input}\nHeatmap saved to {args.output}")
+
+
+if __name__ == "__main__":
+    main()
