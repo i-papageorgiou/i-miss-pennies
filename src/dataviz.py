@@ -38,7 +38,7 @@ def plot_heatmap(results, num_decks, output="figures/matchup_heatmap_v1.png", ve
                 continue
             result = results[first, second]
             value = advantage[row, column]
-            label = f"{result['wins']/num_decks:.0}({result['ties']})"
+            label = f"{100 * result['wins']/num_decks:.0}({100* result['ties'] / num_decks:.0})"
             ax.text(column, row, label, ha="center", va="center", fontsize=9,
                     color="white" if abs(value) >= 0.6 else "#111111")
             if np.isclose(value, best):
