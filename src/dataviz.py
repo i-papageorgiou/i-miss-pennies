@@ -27,7 +27,7 @@ def plot_heatmap(results, num_decks, output="figures/matchup_heatmap_v1.png", ve
                 advantage[row, column] = (result["wins"] - result["losses"]) / num_decks
 
     fig, ax = plt.subplots(figsize=(12, 10), constrained_layout=True)
-    cmap = plt.get_cmap("BrBG").copy()
+    cmap = plt.get_cmap("Purples").copy()
     cmap.set_bad("#e5e7eb")
     chart = ax.imshow(np.ma.masked_invalid(advantage), cmap=cmap, vmin=-1, vmax=1)
     for column, first in enumerate(patterns):
@@ -38,7 +38,7 @@ def plot_heatmap(results, num_decks, output="figures/matchup_heatmap_v1.png", ve
                 continue
             result = results[first, second]
             value = advantage[row, column]
-            label = f"{result['wins']} W / {result['losses']} L\n{result['ties']} ties"
+            label = f"{result['wins']/num_decks:.0}({result['ties']})"
             ax.text(column, row, label, ha="center", va="center", fontsize=9,
                     color="white" if abs(value) >= 0.6 else "#111111")
             if np.isclose(value, best):
