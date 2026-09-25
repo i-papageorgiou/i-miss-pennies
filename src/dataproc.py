@@ -1,85 +1,63 @@
-# Data Processing - scoring and summarizing 
-print('Running imports')
-import pandas as pd
+"""Score the trick-counting version of Nishiyama's game."""
+from pathlib import Path
 
-#this is to unpack the bitpacked file
+CARD_COMBINATIONS = tuple(f"{value:03b}" for value in range(8))
+
+
 def unpack_bit_list(packed_bytes, num_decks):
-    bit_list = []
-    original_length = num_decks * 52
-    
-    for byte_val in packed_bytes:
-        # Extract 8 bits from each byte
-        for bit_index in range(8):
-            if len(bit_list) < original_length:
-                bit = (byte_val >> bit_index) & 1
-                bit_list.append(bit)
-                
-    return bit_list
+    length = num_decks * 52
+    if num_decks < 1 or len(packed_bytes) != (length + 7) // 8:
+        raise ValueError("File size must match the requested number of 52-card decks.")
+    return [(packed_bytes[i // 8] >> (i % 8)) & 1 for i in range(length)]
 
-print("Unpacking bit list from file...")
-test_run = unpack_bit_list(open("data/shuffled_decks10.bin", "rb").read(), 10)
-#print(test_run)
 
-# turn bit_list decks into strings
 def convert_to_strings(bit_list, num_decks):
-    deck_strings = []
-    for i in range(num_decks):
-        start_index = i * 52
-        end_index = start_index + 52
-        deck_string = ''.join(str(bit) for bit in bit_list[start_index:end_index])
-        deck_strings.append(deck_string)
-    return deck_strings
+    if len(bit_list) != num_decks * 52:
+        raise ValueError("Expected exactly 52 bits per deck.")
+    return ["".join(str(bit) for bit in bit_list[i:i + 52])
+            for i in range(0, len(bit_list), 52)]
 
-# card_comb = ['000', '001', '010', '011', '100', '101', '110', '111']
-card_comb_simple = ['000', '001']
 
-test2_run = convert_to_strings(test_run, 10)
-print(test2_run)
+def score_deck(deck, first, second):
+    """Count tricks, discarding the pile through each winning pattern."""
+    if first == second:
+        raise ValueError("Players must choose different patterns.")
+    first_tricks = second_tricks = 0
+    while len(deck) >= 3:
+        first_pos, second_pos = deck.find(first), deck.find(second)
+        if first_pos == second_pos == -1:
+            break
+        if first_pos != -1 and (second_pos == -1 or first_pos < second_pos):
+            first_tricks += 1
+            deck = deck[first_pos + 3:]
+        else:
+            second_tricks += 1
+            deck = deck[second_pos + 3:]
+    return first_tricks, second_tricks
 
-# Version 1: count the tricks in each deck and return a list of counts
 
-def count_tricks(deck_strings, card_comb):
-    print("Starting trick counting...")
-    for comb_idx in card_comb:
-        p1_comb = card_comb[comb_idx]
-        print(f"Player 1 Combination: {p1_comb}")
+def count_tricks(deck_strings, card_comb=CARD_COMBINATIONS):
+    """Return deck wins/losses/ties for each (first choice, response).
 
-        for comb_idx2 in card_comb:
-            if comb_idx2 != comb_idx:
-                p2_comb = card_comb[comb_idx2]
-                print(f"Player 2 Combination: {p2_comb}")
-                for deck in deck_strings:
-                    p1_count = 0
-                    p2_count = 0
-                    cards_left = 52
-                    print(f"cards left: {cards_left}")
-
-                    while cards_left >= 3:
-                        p1_trick_loc = deck.find(p1_comb)
-                        p2_trick_loc = deck.find(p2_comb)
-                        print(f"Player 1 trick loc: {p1_trick_loc}, Player 2 trick loc: {p2_trick_loc}")
-
-                        if p1_trick_loc < p2_trick_loc and p1_trick_loc != -1:
-                            p1_count += 1
-                            deck = deck[p1_trick_loc + 3:]
-                            cards_left -= 3
-                            print(f"Player 1 wins a trick! New deck: {deck}, cards left: {cards_left}")
-
-                        elif p2_trick_loc < p1_trick_loc and p2_trick_loc != -1:
-                            p2_count += 1
-                            deck = deck[p2_trick_loc + 3:]
-                            cards_left -= 3
-                            print(f"Player 2 wins a trick! New deck: {deck}, cards left: {cards_left}")
-
-                        else: # if neither player has a trick, we need to move on
-                            print(f"No tricks found. New deck: {deck}, cards left: {cards_left}")
-                            break # exit the while loop if no tricks are found
-
-                    # print(f"Deck: {deck}, Player 1 Combination: {p1_comb}, Player 2 Combination: {p2_comb}, Player 1 Tricks: {p1_count}, Player 2 Tricks: {p2_count}")
-
-            else:
+    Results are from the response player's perspective. A deck is won by
+    taking more tricks; equal trick counts are a tie.
+    """
+    results = {}
+    for first in card_comb:
+        for second in card_comb:
+            if first == second:
                 continue
+            wins = losses = ties = 0
+            for deck in deck_strings:
+                a, b = score_deck(deck, first, second)
+                wins += b > a
+                losses += b < a
+                ties += b == a
+            results[first, second] = {"wins": wins, "losses": losses, "ties": ties}
+    return results
 
-print("beginning trick counting test...")
-test3_run = count_tricks(test2_run, card_comb_simple)
-print(test3_run)
+
+def analyze_file(filename, num_decks):
+    bits = unpack_bit_list(Path(filename).read_bytes(), num_decks)
+    decks = convert_to_strings(bits, num_decks)
+    return count_tricks(decks), len(decks)
