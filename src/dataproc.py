@@ -18,7 +18,7 @@ def convert_to_strings(bit_list, num_decks):
             for i in range(0, len(bit_list), 52)]
 
 
-def score_deck(deck, first, second):
+def score_deck_v1(deck, first, second):
     """Count tricks, discarding the pile through each winning pattern."""
     if first == second:
         raise ValueError("Players must choose different patterns.")
@@ -32,6 +32,23 @@ def score_deck(deck, first, second):
             deck = deck[first_pos + 3:]
         else:
             second_tricks += 1
+            deck = deck[second_pos + 3:]
+    return first_tricks, second_tricks
+
+def score_deck_v2(deck, first, second):
+    """Count tricks, discarding the pile through each winning pattern."""
+    if first == second:
+        raise ValueError("Players must choose different patterns.")
+    first_tricks = second_tricks = 0
+    while len(deck) >= 3:
+        first_pos, second_pos = deck.find(first), deck.find(second)
+        if first_pos == second_pos == -1:
+            break
+        if first_pos != -1 and (second_pos == -1 or first_pos < second_pos):
+            first_tricks += first_pos+3
+            deck = deck[first_pos + 3:]
+        else:
+            second_tricks += second_pos+3
             deck = deck[second_pos + 3:]
     return first_tricks, second_tricks
 
@@ -49,7 +66,7 @@ def count_tricks(deck_strings, card_comb=CARD_COMBINATIONS):
                 continue
             wins = losses = ties = 0
             for deck in deck_strings:
-                a, b = score_deck(deck, first, second)
+                a, b = score_deck_v1(deck, first, second)
                 wins += b > a
                 losses += b < a
                 ties += b == a
