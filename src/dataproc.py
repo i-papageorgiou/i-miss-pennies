@@ -79,5 +79,3 @@ def analyze_file(filename, num_decks):
     decks = convert_to_strings(bits, num_decks)
     return count_tricks(decks), len(decks)
 
-if __name__ == "__main__":
-    main()
