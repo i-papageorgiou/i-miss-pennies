@@ -10,6 +10,9 @@ from src.dataproc import CARD_COMBINATIONS
 
 SCORING_RULES = {1: "most tricks wins", 2: "most cards wins"}
 
+#CURRENT FEEDBACK
+#heatmap has transposed results. Want the win rate for us to be better
+#follow his heatmap format
 
 def plot_heatmap(results, num_decks, output="figures/matchup_heatmap_v1.png", version=1):
     if num_decks < 1:
