@@ -1,6 +1,10 @@
 """Score the trick-counting version of Nishiyama's game."""
 from pathlib import Path
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_DATA = PROJECT_ROOT / "data/shuffled_decks.bin"
+LEGACY_DATA = PROJECT_ROOT / "data/shuffled_decks10.bin"
+
 CARD_COMBINATIONS = tuple(f"{value:03b}" for value in range(8))
 
 
@@ -53,7 +57,7 @@ def score_deck_v2(deck, first, second):
     return first_tricks, second_tricks
 
 
-def count_tricks(deck_strings, card_comb=CARD_COMBINATIONS):
+def count_tricks(deck_strings, card_comb=CARD_COMBINATIONS, version = 1):
     """Return deck wins/losses/ties for each (first choice, response).
 
     Results are from the response player's perspective. A deck is won by
@@ -66,7 +70,12 @@ def count_tricks(deck_strings, card_comb=CARD_COMBINATIONS):
                 continue
             wins = losses = ties = 0
             for deck in deck_strings:
-                a, b = score_deck_v1(deck, first, second)
+                if version == 1:
+                    a, b = score_deck_v1(deck, first, second)
+                elif version == 2:
+                    a, b = score_deck_v2(deck, first, second)
+                else:
+                    raise ValueError("Invalid version specified. Use 1 or 2.")
                 wins += b > a
                 losses += b < a
                 ties += b == a
@@ -78,4 +87,7 @@ def analyze_file(filename, num_decks):
     bits = unpack_bit_list(Path(filename).read_bytes(), num_decks)
     decks = convert_to_strings(bits, num_decks)
     return count_tricks(decks), len(decks)
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
