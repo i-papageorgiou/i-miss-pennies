@@ -78,3 +78,6 @@ def analyze_file(filename, num_decks):
     bits = unpack_bit_list(Path(filename).read_bytes(), num_decks)
     decks = convert_to_strings(bits, num_decks)
     return count_tricks(decks), len(decks)
+
+if __name__ == "__main__":
+    main()
