@@ -8,7 +8,10 @@ import numpy as np
 from src.dataproc import CARD_COMBINATIONS
 
 
-def plot_heatmap(results, num_decks, output="figures/matchup_heatmap.png"):
+SCORING_RULES = {1: "most tricks wins", 2: "most cards wins"}
+
+
+def plot_heatmap(results, num_decks, output="figures/matchup_heatmap_v1.png", version=1):
     if num_decks < 1:
         raise ValueError("At least one deck is required.")
     patterns = CARD_COMBINATIONS
@@ -42,8 +45,8 @@ def plot_heatmap(results, num_decks, output="figures/matchup_heatmap.png"):
     ax.set_yticks(range(8), labels)
     ax.set_xlabel("First player's combination", fontsize=12)
     ax.set_ylabel("Second player's response", fontsize=12)
-    ax.set_title(f"Nishiyama's game - {num_decks:,} decks analyzed\n"
-                 "Deck wins and losses for the second player (most tricks wins)", pad=18)
+    ax.set_title(f"Nishiyama's game (v{version}) - {num_decks:,} decks analyzed\n"
+                 f"Deck wins and losses for the second player ({SCORING_RULES[version]})", pad=18)
     bar = fig.colorbar(chart, ax=ax, shrink=.8)
     bar.set_label("Second-player advantage: (wins - losses) / decks")
     fig.supxlabel("R = red (0) | B = black (1)\n"

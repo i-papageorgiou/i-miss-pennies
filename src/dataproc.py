@@ -40,7 +40,7 @@ def score_deck_v1(deck, first, second):
     return first_tricks, second_tricks
 
 def score_deck_v2(deck, first, second):
-    """Count tricks, discarding the pile through each winning pattern."""
+    """Count cards won: each winning pattern takes the whole pile through it."""
     if first == second:
         raise ValueError("Players must choose different patterns.")
     first_tricks = second_tricks = 0
@@ -83,7 +83,7 @@ def count_tricks(deck_strings, card_comb=CARD_COMBINATIONS, version = 1):
     return results
 
 
-def analyze_file(filename, num_decks):
+def analyze_file(filename, num_decks, version=1):
     bits = unpack_bit_list(Path(filename).read_bytes(), num_decks)
     decks = convert_to_strings(bits, num_decks)
-    return count_tricks(decks), len(decks)
+    return count_tricks(decks, version=version), len(decks)

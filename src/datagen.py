@@ -82,7 +82,8 @@ def main():
     parser = argparse.ArgumentParser(description="Add shuffled decks and regenerate the heatmap.")
     parser.add_argument("--input", type=Path, default=DEFAULT_DATA)
     parser.add_argument("--add-decks", type=int, help="Skip the prompt; 0 redraws existing data.")
-    parser.add_argument("--output", type=Path, default=PROJECT_ROOT / "figures/matchup_heatmap.png")
+    parser.add_argument("--output", type=Path, default=PROJECT_ROOT / "figures/matchup_heatmap.png",
+                        help="Base path; _v1/_v2 is appended to the file name.")
     args = parser.parse_args()
     number = args.add_decks
     while number is None:
@@ -96,12 +97,18 @@ def main():
     try:
         seed = LEGACY_DATA if args.input.resolve() == DEFAULT_DATA.resolve() else None
         total = add_decks(number, args.input, seed)
-        results, _ = analyze_file(args.input, total)
-        plot_heatmap(results, total, args.output)
+        outputs = []
+        for version in (1, 2):
+            output = args.output.with_stem(f"{args.output.stem}_v{version}")
+            results, _ = analyze_file(args.input, total, version)
+            plot_heatmap(results, total, output, version)
+            outputs.append(output)
     except (ValueError, OSError) as error:
         parser.exit(1, f"Error: {error}\n")
     print(f"Added {number:,} decks; {total:,} decks analyzed in total.")
-    print(f"Decks saved to {args.input}\nHeatmap saved to {args.output}")
+    print(f"Decks saved to {args.input}")
+    for output in outputs:
+        print(f"Heatmap saved to {output}")
 
 
 if __name__ == "__main__":
