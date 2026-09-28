@@ -19,7 +19,7 @@ def generate_deck():
     return deck
 
 #shuffle the integer lists
-def shuffle_deck(rounds):
+def shuffle_deck(rounds: int) -> list:
     shuffled_decks = []
     for iter in range(0, rounds):
         deck = generate_deck()
@@ -29,7 +29,7 @@ def shuffle_deck(rounds):
     return shuffled_decks
 
 #FUNCTIION for bitpacking
-def pack_bit_list(shuffled_decks):
+def pack_bit_list(shuffled_decks: list) -> bytearray:
     packed_bytes = bytearray()
     
     # Process the list in chunks of 8 bits
@@ -46,11 +46,11 @@ def pack_bit_list(shuffled_decks):
     return packed_bytes
 
 # save the shuffled decks to a file in the data subfolder
-def save_decks_to_file(packed_bytes, filename):
+def save_decks_to_file(packed_bytes: bytearray, filename: Path):
     with open(filename, "wb") as f:
         f.write(packed_bytes)
 
-def add_decks(number, filename=DEFAULT_DATA, seed_file=LEGACY_DATA):
+def add_decks(number: int, filename: Path = DEFAULT_DATA, seed_file: Path = LEGACY_DATA):
     """Preserve old cards and append new decks, repacking any padding bits."""
     if not isinstance(number, int) or number < 0:
         raise ValueError("The number of additional decks must be a nonnegative integer.")
