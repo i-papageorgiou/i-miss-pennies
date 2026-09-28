@@ -10,7 +10,7 @@ from src.dataproc import CARD_COMBINATIONS
 
 SCORING_RULES = {1: "Tricks", 2: "Cards"}
 
-def plot_heatmap(results, num_decks, output="figures/matchup_heatmap_v1.png", version=1):
+def plot_heatmap(results: dict, num_decks: int, output: Path = Path("figures/matchup_heatmap_v1.png"), version: int = 1):
     if num_decks < 1:
         raise ValueError("At least one deck is required.")
     patterns = CARD_COMBINATIONS[::-1]
