@@ -8,21 +8,21 @@ LEGACY_DATA = PROJECT_ROOT / "data/shuffled_decks10.bin"
 CARD_COMBINATIONS = tuple(f"{value:03b}" for value in range(8))
 
 
-def unpack_bit_list(packed_bytes, num_decks):
+def unpack_bit_list(packed_bytes: bytes, num_decks: int) -> list:
     length = num_decks * 52
     if num_decks < 1 or len(packed_bytes) != (length + 7) // 8:
         raise ValueError("File size must match the requested number of 52-card decks.")
     return [(packed_bytes[i // 8] >> (i % 8)) & 1 for i in range(length)]
 
 
-def convert_to_strings(bit_list, num_decks):
+def convert_to_strings(bit_list: list, num_decks: int) -> list:
     if len(bit_list) != num_decks * 52:
         raise ValueError("Expected exactly 52 bits per deck.")
     return ["".join(str(bit) for bit in bit_list[i:i + 52])
             for i in range(0, len(bit_list), 52)]
 
 
-def score_deck_v1(deck, first, second):
+def score_deck_v1(deck: str, first: str, second: str) -> tuple[int, int]:
     """Count tricks, discarding the pile through each winning pattern."""
     if first == second:
         raise ValueError("Players must choose different patterns.")
@@ -39,7 +39,7 @@ def score_deck_v1(deck, first, second):
             deck = deck[second_pos + 3:]
     return first_tricks, second_tricks
 
-def score_deck_v2(deck, first, second):
+def score_deck_v2(deck: str, first: str, second: str) -> tuple[int, int]:
     """Count cards won: each winning pattern takes the whole pile through it."""
     if first == second:
         raise ValueError("Players must choose different patterns.")
@@ -57,7 +57,7 @@ def score_deck_v2(deck, first, second):
     return first_tricks, second_tricks
 
 
-def count_tricks(deck_strings, card_comb=CARD_COMBINATIONS, version = 1):
+def count_tricks(deck_strings: list, card_comb: tuple = CARD_COMBINATIONS, version: int = 1):
     """Return deck wins/losses/ties for each (first choice, response).
 
     Results are from the response player's perspective. A deck is won by
@@ -83,7 +83,7 @@ def count_tricks(deck_strings, card_comb=CARD_COMBINATIONS, version = 1):
     return results
 
 
-def analyze_file(filename, num_decks, version=1):
+def analyze_file(filename: Path, num_decks: int, version: int = 1):
     bits = unpack_bit_list(Path(filename).read_bytes(), num_decks)
     decks = convert_to_strings(bits, num_decks)
     return count_tricks(decks, version=version), len(decks)
