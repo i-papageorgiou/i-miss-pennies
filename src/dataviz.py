@@ -32,7 +32,7 @@ def plot_heatmap(results, num_decks, output="figures/matchup_heatmap_v1.png", ve
                 continue
             result = results[second, first]
             value = advantage[row, column]
-            label = f"{100 * value:.0f}({100 * result['ties'] / num_decks:.0f})"
+            label = f"{int(round(100 * value))}({int(round(100 * result['ties'] / num_decks))})"
             ax.text(column, row, label, ha="center", va="center", fontsize=11,
                     color="white" if value >= 0.5 else "#111111")
     ax.set_xticks(range(8), labels)
