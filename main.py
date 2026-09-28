@@ -8,8 +8,8 @@ import time
 def log_calls(func: Callable) -> Callable:
     def wrapper(*args, **kwargs) -> Any:
         print(f'{func.__name__} was called: {dt.now()}')
-        print(f'Positional arguments: {args}')
-        print(f'Keyword arguments: {kwargs}')
+        #print(f'Positional arguments: {args}')
+        #print(f'Keyword arguments: {kwargs}')
         
         t0 = dt.now()
         result = func(*args, **kwargs)

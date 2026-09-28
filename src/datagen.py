@@ -4,6 +4,8 @@
 import random
 from pathlib import Path
 
+from main import log_calls
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA = PROJECT_ROOT / "data/shuffled_decks.bin"
 LEGACY_DATA = PROJECT_ROOT / "data/shuffled_decks10.bin"
@@ -69,7 +71,7 @@ def add_decks(number, filename=DEFAULT_DATA, seed_file=LEGACY_DATA):
     temporary.replace(filename)
     return previous_count + number
 
-
+@log_calls
 def main():
     import argparse
     # Support both `python src/datagen.py` and importing from main.py.
