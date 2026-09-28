@@ -2,6 +2,7 @@
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from main import log_calls
 import numpy as np
 
 from src.dataproc import CARD_COMBINATIONS
@@ -9,6 +10,7 @@ from src.dataproc import CARD_COMBINATIONS
 
 SCORING_RULES = {1: "Tricks", 2: "Cards"}
 
+@log_calls
 def plot_heatmap(results, num_decks, output="figures/matchup_heatmap_v1.png", version=1):
     if num_decks < 1:
         raise ValueError("At least one deck is required.")
