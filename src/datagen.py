@@ -69,6 +69,16 @@ def add_decks(number: int, filename: Path = DEFAULT_DATA, seed_file: Path = LEGA
     temporary.replace(filename)
     return previous_count + number
 
+def show_heatmaps(paths: list):
+    """Open the saved heatmap images without re-analyzing the decks."""
+    import matplotlib.pyplot as plt
+    for path in paths:
+        fig, ax = plt.subplots(figsize=(9, 9), constrained_layout=True)
+        ax.imshow(plt.imread(path))
+        ax.axis("off")
+        fig.canvas.manager.set_window_title(path.name)
+    plt.show()
+
 def main():
     import argparse
     # Support both `python src/datagen.py` and importing from main.py.
@@ -80,28 +90,34 @@ def main():
 
     parser = argparse.ArgumentParser(description="Add shuffled decks and regenerate the heatmap.")
     parser.add_argument("--input", type=Path, default=DEFAULT_DATA)
-    parser.add_argument("--add-decks", type=int, help="Skip the prompt; 0 redraws existing data.")
+    parser.add_argument("--add-decks", type=int, help="Skip the prompt; 0 shows current heatmap.")
     parser.add_argument("--output", type=Path, default=PROJECT_ROOT / "figures/matchup_heatmap.png",
                         help="Base path; _v1/_v2 is appended to the file name.")
     args = parser.parse_args()
     number = args.add_decks
     while number is None:
         try:
-            number = int(input("How many more decks would you like to analyze? (0 to redraw): "))
+            number = int(input("How many more decks would you like to analyze? (0 to show current heatmap): "))
+            if number == 0:
+                print("Showing current heatmap only.")
             if number < 0:
                 raise ValueError
         except ValueError:
             print("Please enter a whole number of zero or more.")
             number = None
+    outputs = [args.output.with_stem(f"{args.output.stem}_v{version}") for version in (1, 2)]
+    if number == 0:
+        missing = [output for output in outputs if not output.exists()]
+        if missing:
+            parser.exit(1, f"Error: no heatmap found at {missing[0]}; add decks to generate it.\n")
+        show_heatmaps(outputs)
+        return
     try:
         seed = LEGACY_DATA if args.input.resolve() == DEFAULT_DATA.resolve() else None
         total = add_decks(number, args.input, seed)
-        outputs = []
-        for version in (1, 2):
-            output = args.output.with_stem(f"{args.output.stem}_v{version}")
+        for version, output in zip((1, 2), outputs):
             results, _ = analyze_file(args.input, total, version)
             plot_heatmap(results, total, output, version)
-            outputs.append(output)
     except (ValueError, OSError) as error:
         parser.exit(1, f"Error: {error}\n")
     print(f"Added {number:,} decks; {total:,} decks analyzed in total.")
