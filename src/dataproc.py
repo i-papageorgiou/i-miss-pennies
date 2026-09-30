@@ -78,7 +78,10 @@ def count_tricks(deck_strings: list, card_comb: tuple = CARD_COMBINATIONS, versi
                 wins += b > a
                 losses += b < a
                 ties += b == a
+            # Store results in a dict from the perspective of the second player (the response) 
+            # as we want "my choice" to be the winning choice
             results[first, second] = {"wins": wins, "losses": losses, "ties": ties}
+            
     return results
 
 # Run all of the functions to simulate the games and return the results for a given file of shuffled decks.
