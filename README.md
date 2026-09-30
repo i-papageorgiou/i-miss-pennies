@@ -31,4 +31,6 @@ Black outlines mark the best observed response(s) within each column; these
 are sample results, not guarantees. Identical choices are excluded.
 
 Run scoring checks with `python -m unittest discover -s tests`.
-
+<hr>
+Analysis: 
+The heatmaps generated for each game show that the games favor the same strategy. We feel pretty confident as we ran 4 million decks and the results plateau.
