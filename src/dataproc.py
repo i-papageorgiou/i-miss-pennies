@@ -7,23 +7,22 @@ LEGACY_DATA = PROJECT_ROOT / "data/shuffled_decks10.bin"
 
 CARD_COMBINATIONS = tuple(f"{value:03b}" for value in range(8))
 
-
+# Unpack a list of packed bytes into a list of individual bits.
 def unpack_bit_list(packed_bytes: bytes, num_decks: int) -> list:
     length = num_decks * 52
     if num_decks < 1 or len(packed_bytes) != (length + 7) // 8:
         raise ValueError("File size must match the requested number of 52-card decks.")
     return [(packed_bytes[i // 8] >> (i % 8)) & 1 for i in range(length)]
 
-
+# Convert a list of bits into a list of strings, one per deck.
 def convert_to_strings(bit_list: list, num_decks: int) -> list:
     if len(bit_list) != num_decks * 52:
         raise ValueError("Expected exactly 52 bits per deck.")
     return ["".join(str(bit) for bit in bit_list[i:i + 52])
             for i in range(0, len(bit_list), 52)]
 
-
+# Score a deck based on the trick-counting version of the penny game.
 def score_deck_v1(deck: str, first: str, second: str) -> tuple[int, int]:
-    """Count tricks, discarding the pile through each winning pattern."""
     if first == second:
         raise ValueError("Players must choose different patterns.")
     first_tricks = second_tricks = 0
@@ -39,8 +38,8 @@ def score_deck_v1(deck: str, first: str, second: str) -> tuple[int, int]:
             deck = deck[second_pos + 3:]
     return first_tricks, second_tricks
 
+# Score a deck based on Proffessor Smith's card-counting version of the penny game.
 def score_deck_v2(deck: str, first: str, second: str) -> tuple[int, int]:
-    """Count cards won: each winning pattern takes the whole pile through it."""
     if first == second:
         raise ValueError("Players must choose different patterns.")
     first_tricks = second_tricks = 0
@@ -56,7 +55,7 @@ def score_deck_v2(deck: str, first: str, second: str) -> tuple[int, int]:
             deck = deck[second_pos + 3:]
     return first_tricks, second_tricks
 
-
+# Count wins/losses/ties for each version across all the new decks.
 def count_tricks(deck_strings: list, card_comb: tuple = CARD_COMBINATIONS, version: int = 1):
     """Return deck wins/losses/ties for each (first choice, response).
 
@@ -82,7 +81,7 @@ def count_tricks(deck_strings: list, card_comb: tuple = CARD_COMBINATIONS, versi
             results[first, second] = {"wins": wins, "losses": losses, "ties": ties}
     return results
 
-
+# Run all of the functions to simulate the games and return the results for a given file of shuffled decks.
 def analyze_file(filename: Path, num_decks: int, version: int = 1):
     bits = unpack_bit_list(Path(filename).read_bytes(), num_decks)
     decks = convert_to_strings(bits, num_decks)

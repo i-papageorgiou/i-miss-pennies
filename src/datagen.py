@@ -3,12 +3,13 @@
 
 import random
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA = PROJECT_ROOT / "data/shuffled_decks.bin"
 LEGACY_DATA = PROJECT_ROOT / "data/shuffled_decks10.bin"
 
-
+# generate a deck of 52 cards with 0s and 1s
 def generate_deck():
     red_list = [0 for i in range(1, 27)]
     black_list = [1 for i in range(27, 53)]
@@ -16,7 +17,7 @@ def generate_deck():
 
     return deck
 
-#shuffle the integer lists
+# shuffle the integer lists (aka decks) and return a list of shuffled decks
 def shuffle_deck(rounds: int) -> list:
     shuffled_decks = []
     for iter in range(0, rounds):
@@ -26,7 +27,7 @@ def shuffle_deck(rounds: int) -> list:
 
     return shuffled_decks
 
-#FUNCTIION for bitpacking
+# function for bitpacking
 def pack_bit_list(shuffled_decks: list) -> bytearray:
     packed_bytes = bytearray()
     
@@ -48,30 +49,42 @@ def save_decks_to_file(packed_bytes: bytearray, filename: Path):
     with open(filename, "wb") as f:
         f.write(packed_bytes)
 
+# Preserve old cards and append new decks, repacking any padding bits.
 def add_decks(number: int, filename: Path = DEFAULT_DATA, seed_file: Path = LEGACY_DATA):
-    """Preserve old cards and append new decks, repacking any padding bits."""
+
+    # Validate the input number of decks.
     if not isinstance(number, int) or number < 0:
         raise ValueError("The number of additional decks must be a nonnegative integer.")
+    
+    # Use the seed file only if the default data file is empty or missing.
     filename = Path(filename)
     source = filename if filename.exists() else seed_file
     packed = Path(source).read_bytes() if source is not None and Path(source).exists() else b""
     previous_count = len(packed) * 8 // 52
+
+    # Validate that the existing file contains complete decks.
     if len(packed) != (previous_count * 52 + 7) // 8:
         raise ValueError("Existing file does not contain complete packed decks.")
+    
+    # Unpack the existing decks into a list of bits.
     bits = [(packed[i // 8] >> (i % 8)) & 1 for i in range(previous_count * 52)]
+    
+    # Validate that at least one deck will be present after adding the new decks.
     if previous_count + number == 0:
         raise ValueError("Add at least one deck to start a dataset.")
+    
+    # Generate and append the new shuffled decks to the list of bits.
     bits.extend(shuffle_deck(number))
     filename.parent.mkdir(parents=True, exist_ok=True)
+
     # Replace only after the entire combined dataset has been written.
     temporary = filename.with_suffix(filename.suffix + ".tmp")
     save_decks_to_file(pack_bit_list(bits), temporary)
     temporary.replace(filename)
     return previous_count + number
 
+# Show saved heatmap images without re-analyzing the decks.
 def show_heatmaps(paths: list):
-    """Open the saved heatmap images without re-analyzing the decks."""
-    import matplotlib.pyplot as plt
     for path in paths:
         fig, ax = plt.subplots(figsize=(9, 9), constrained_layout=True)
         ax.imshow(plt.imread(path))
