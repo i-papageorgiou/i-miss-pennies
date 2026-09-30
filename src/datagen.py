@@ -83,7 +83,7 @@ def add_decks(number: int, filename: Path = DEFAULT_DATA, seed_file: Path = LEGA
     temporary.replace(filename)
     return previous_count + number
 
-# Show saved heatmap images without re-analyzing the decks.
+# Show saved heatmaps images without re-analyzing the decks.
 def show_heatmaps(paths: list):
     for path in paths:
         fig, ax = plt.subplots(figsize=(9, 9), constrained_layout=True)
@@ -101,18 +101,18 @@ def main():
     from src.dataproc import analyze_file
     from src.dataviz import plot_heatmap
 
-    parser = argparse.ArgumentParser(description="Add shuffled decks and regenerate the heatmap.")
+    parser = argparse.ArgumentParser(description="Add shuffled decks and regenerate the heatmaps.")
     parser.add_argument("--input", type=Path, default=DEFAULT_DATA)
-    parser.add_argument("--add-decks", type=int, help="Skip the prompt; 0 shows current heatmap.")
+    parser.add_argument("--add-decks", type=int, help="Skip the prompt; 0 shows current heatmaps.")
     parser.add_argument("--output", type=Path, default=PROJECT_ROOT / "figures/matchup_heatmap.png",
                         help="Base path; _v1/_v2 is appended to the file name.")
     args = parser.parse_args()
     number = args.add_decks
     while number is None:
         try:
-            number = int(input("How many more decks would you like to analyze? (0 to show current heatmap): "))
+            number = int(input("How many more decks would you like to analyze? (0 to show current heatmaps): "))
             if number == 0:
-                print("Showing current heatmap only.")
+                print("Showing current heatmaps only.")
             if number < 0:
                 raise ValueError
         except ValueError:
