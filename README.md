@@ -1,5 +1,12 @@
 # i-miss-pennies
 
+README.md: This should contain a high-level description of the project as well as how to run your code:
+Explain Penney's Game and the two variations of the H-N Game. Do not assume the reader is already familiar with the game.
+Explain the purpose of our investigation.
+Give a brief "how-to" of how to run your code.
+Discuss your findings. What are the optimal strategies for each player? Are these results consistent between the two versions of the game?
+
+
 Generate a matchup heatmap from the existing packed decks:
 
 ```sh
